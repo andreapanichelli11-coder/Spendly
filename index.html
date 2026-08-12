@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Spendly">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.json">
-<title>Spendly</title>
+<title>Spendly V2</title>
 <style>
 :root{--bg:#0d0f14;--panel:#151821;--panel2:#1b1f2b;--text:#f6f7fb;--muted:#9098a9;--accent:#b9ff66;--danger:#ff6b75;--line:#272c39;--shadow:0 18px 50px rgba(0,0,0,.28)}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
@@ -24,7 +24,15 @@ body{min-height:100vh}.app{max-width:720px;margin:auto;padding:calc(env(safe-are
 .nav{position:fixed;z-index:20;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom));width:min(calc(100% - 28px),680px);height:66px;background:rgba(25,28,37,.94);backdrop-filter:blur(20px);border:1px solid #303543;border-radius:24px;display:grid;grid-template-columns:repeat(4,1fr);box-shadow:var(--shadow)}.nav button{border:0;background:none;color:var(--muted);font-size:11px;font-weight:700}.nav button.active{color:var(--accent)}.nav strong{display:block;font-size:20px;margin-bottom:2px}
 .page{display:none}.page.active{display:block}
 .modal{position:fixed;z-index:50;inset:0;background:rgba(0,0,0,.58);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center}.modal.show{display:flex}.sheet{width:min(100%,720px);background:#171a22;border-radius:30px 30px 0 0;padding:22px 18px calc(24px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}.handle{width:45px;height:5px;background:#414755;border-radius:9px;margin:-10px auto 18px}.sheet h3{font-size:23px;margin:0 0 16px}.field{margin:12px 0}.field label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin:0 0 7px}.field input,.field select{width:100%;background:#20242e;border:1px solid #303645;color:white;border-radius:16px;padding:14px;font-size:16px;outline:none}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.save{width:100%;border:0;background:var(--accent);color:#10140c;border-radius:17px;padding:15px;font-size:16px;font-weight:900;margin-top:8px}.cancel{width:100%;border:0;background:none;color:var(--muted);padding:13px;font-weight:700}
-.setting{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;margin:10px 0}.setting b{display:block;margin-bottom:4px}.danger{color:var(--danger)}canvas{width:100%;height:180px;background:var(--panel);border:1px solid var(--line);border-radius:22px}
+.setting{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;margin:10px 0}.setting b{display:block;margin-bottom:4px}.danger{color:var(--danger)}canvas{width:100%;height:220px;background:var(--panel);border:1px solid var(--line);border-radius:22px}
+.statsgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:0 0 14px}
+.statbox{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:15px}
+.statbox span{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+.statbox b{font-size:19px;letter-spacing:-.02em}
+.statbox.good b{color:var(--accent)}.statbox.bad b{color:#ff8a91}
+.chartlegend{display:flex;gap:18px;align-items:center;margin:10px 3px 0;color:var(--muted);font-size:12px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.dot.in{background:var(--accent)}.dot.out{background:#ff7b84}
+@media(max-width:390px){.statsgrid{grid-template-columns:1fr 1fr}.statbox b{font-size:16px}}
 </style>
 </head>
 <body>
@@ -43,8 +51,16 @@ body{min-height:100vh}.app{max-width:720px;margin:auto;padding:calc(env(safe-are
 </section>
 <section id="stats" class="page">
  <div class="top"><div><div class="eyebrow">Analisi</div><h1>Statistiche</h1></div></div>
- <canvas id="chart" width="680" height="180"></canvas>
- <div class="section"><div class="sectionhead"><h2>Riepilogo categorie</h2></div><div id="statcats" class="catgrid"></div></div>
+ <div class="statsgrid">
+   <div class="statbox good"><span>Entrate questo mese</span><b id="statIncome">€ 0,00</b></div>
+   <div class="statbox bad"><span>Spese questo mese</span><b id="statExpense">€ 0,00</b></div>
+   <div class="statbox"><span>Risparmio del mese</span><b id="statSaving">€ 0,00</b></div>
+   <div class="statbox"><span>Tasso di risparmio</span><b id="statRate">0%</b></div>
+ </div>
+ <div class="sectionhead"><h2>Entrate e spese</h2><span class="muted">ultimi 6 mesi</span></div>
+ <canvas id="chart" width="680" height="220"></canvas>
+ <div class="chartlegend"><span><i class="dot in"></i>Entrate</span><span><i class="dot out"></i>Spese</span></div>
+ <div class="section"><div class="sectionhead"><h2>Spese per categoria</h2><span class="muted">questo mese</span></div><div id="statcats" class="catgrid"></div></div>
 </section>
 <section id="settings" class="page">
  <div class="top"><div><div class="eyebrow">Preferenze</div><h1>Impostazioni</h1></div></div>
@@ -76,7 +92,10 @@ const icons={Casa:'🏠',Spesa:'🛒',Trasporti:'🚗',Svago:'🎬',Ristoranti:'
 let state=JSON.parse(localStorage.getItem(KEY)||'null')||{transactions:[],budget:0};
 let currentType='expense';
 const money=n=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(Number(n)||0);
-const today=()=>new Date().toISOString().slice(0,10);
+const pad2=n=>String(n).padStart(2,'0');
+const localDateKey=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const localMonthKey=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}`;
+const today=()=>localDateKey(new Date());
 function persist(){localStorage.setItem(KEY,JSON.stringify(state));render()}
 function monthKey(d){return (d||today()).slice(0,7)}
 function currentMonth(){return today().slice(0,7)}
@@ -86,7 +105,7 @@ function saveTx(){let a=parseFloat(document.getElementById('amount').value);if(!
 function delTx(id){if(confirm('Eliminare questo movimento?')){state.transactions=state.transactions.filter(x=>x.id!==id);persist()}}
 function openBudget(){document.getElementById('budgetInput').value=state.budget||'';document.getElementById('budgetModal').classList.add('show')}
 function saveBudget(){state.budget=Math.max(0,parseFloat(document.getElementById('budgetInput').value)||0);persist();closeModal('budgetModal')}
-function showPage(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.p===id));if(id==='stats')setTimeout(drawChart,30);window.scrollTo(0,0)}
+function showPage(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.p===id));if(id==='stats'){renderStats();requestAnimationFrame(()=>requestAnimationFrame(drawChart));}window.scrollTo(0,0)}
 function txHTML(t,del=false){return `<div class="tx"><div class="txico">${icons[t.category]||'•'}</div><div class="txmain"><b>${escapeHtml(t.desc)}</b><span>${t.category} · ${new Date(t.date+'T12:00:00').toLocaleDateString('it-IT')}</span></div><div class="amount ${t.type==='income'?'plus':''}">${t.type==='income'?'+':'−'} ${money(t.amount)}</div>${del?`<button class="smallbtn danger" onclick="delTx(${t.id})">×</button>`:''}</div>`}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function render(){
@@ -100,8 +119,50 @@ function render(){
  document.getElementById('recent').innerHTML=tx.length?tx.slice(0,5).map(t=>txHTML(t)).join(''):'<div class="empty">Nessun movimento. Inizia aggiungendo una spesa o un’entrata.</div>';
  document.getElementById('alltx').innerHTML=tx.length?tx.map(t=>txHTML(t,true)).join(''):'<div class="empty">Nessun movimento registrato.</div>';
  document.getElementById('statcats').innerHTML=sorted.length?sorted.map(([c,v])=>`<div class="cat"><div class="ico">${icons[c]||'•'}</div><b>${c}</b><span>${money(v)}</span></div>`).join(''):'<div class="empty" style="grid-column:1/-1">Non ci sono ancora dati per questo mese.</div>';
+ renderStats();
+ if(document.getElementById('stats').classList.contains('active')) requestAnimationFrame(drawChart);
 }
-function drawChart(){const c=document.getElementById('chart'),ctx=c.getContext('2d'),dpr=devicePixelRatio||1,w=c.clientWidth,h=180;c.width=w*dpr;c.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);const months=[];let now=new Date();for(let i=5;i>=0;i--){let d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(d.toISOString().slice(0,7))}let vals=months.map(m=>state.transactions.filter(t=>t.type==='expense'&&monthKey(t.date)===m).reduce((s,t)=>s+t.amount,0)),max=Math.max(...vals,1);ctx.font='12px -apple-system';ctx.textAlign='center';months.forEach((m,i)=>{let x=(i+.5)*w/6,bh=(vals[i]/max)*115,y=145-bh;ctx.fillStyle='#b9ff66';ctx.beginPath();ctx.roundRect(x-w/18,y,w/9,bh,8);ctx.fill();ctx.fillStyle='#9098a9';ctx.fillText(new Date(m+'-01T12:00:00').toLocaleDateString('it-IT',{month:'short'}),x,168)});}
+function renderStats(){
+ const cm=currentMonth(), mt=state.transactions.filter(t=>monthKey(t.date)===cm);
+ const inc=mt.filter(t=>t.type==='income').reduce((a,t)=>a+Number(t.amount||0),0);
+ const exp=mt.filter(t=>t.type==='expense').reduce((a,t)=>a+Number(t.amount||0),0);
+ const saving=inc-exp, rate=inc>0?(saving/inc*100):0;
+ document.getElementById('statIncome').textContent=money(inc);
+ document.getElementById('statExpense').textContent=money(exp);
+ document.getElementById('statSaving').textContent=money(saving);
+ document.getElementById('statSaving').style.color=saving>=0?'var(--accent)':'#ff8a91';
+ document.getElementById('statRate').textContent=(Math.round(rate*10)/10).toLocaleString('it-IT')+'%';
+ document.getElementById('statRate').style.color=rate>=0?'var(--accent)':'#ff8a91';
+}
+function lastSixMonths(){
+ const out=[],now=new Date();
+ for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);out.push({key:localMonthKey(d),label:d.toLocaleDateString('it-IT',{month:'short'})})}
+ return out;
+}
+function drawChart(){
+ const c=document.getElementById('chart'); if(!c||!c.clientWidth)return;
+ const ctx=c.getContext('2d'),dpr=Math.min(devicePixelRatio||1,2),w=c.clientWidth,h=220;
+ c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ const months=lastSixMonths();
+ const income=months.map(m=>state.transactions.filter(t=>t.type==='income'&&monthKey(t.date)===m.key).reduce((a,t)=>a+Number(t.amount||0),0));
+ const expense=months.map(m=>state.transactions.filter(t=>t.type==='expense'&&monthKey(t.date)===m.key).reduce((a,t)=>a+Number(t.amount||0),0));
+ const max=Math.max(...income,...expense,1),left=12,right=10,top=22,bottom=42,plotH=h-top-bottom,groupW=(w-left-right)/6;
+ ctx.lineWidth=1;ctx.strokeStyle='rgba(144,152,169,.14)';
+ for(let i=0;i<4;i++){let y=top+(plotH/3)*i;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke()}
+ ctx.font='11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+ months.forEach((m,i)=>{
+   const cx=left+groupW*(i+.5),bw=Math.min(20,groupW*.25),gap=4;
+   const ih=(income[i]/max)*plotH,eh=(expense[i]/max)*plotH;
+   const rounded=(x,y,ww,hh,r,color)=>{if(hh<=0)return;ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,ww,hh,Math.min(r,hh/2));ctx.fill()};
+   rounded(cx-bw-gap/2,top+plotH-ih,bw,ih,6,'#b9ff66');
+   rounded(cx+gap/2,top+plotH-eh,bw,eh,6,'#ff7b84');
+   ctx.fillStyle='#9098a9';ctx.fillText(m.label.replace('.',''),cx,h-18);
+ });
+ if(max<=1){
+   ctx.fillStyle='#9098a9';ctx.font='13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+   ctx.fillText('Aggiungi movimenti per vedere il grafico',w/2,h/2);
+ }
+}
 function backup(){let blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='spendly-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href)}
 document.getElementById('restore').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!Array.isArray(x.transactions))throw 0;state=x;persist();alert('Backup ripristinato')}catch{alert('File di backup non valido')}};r.readAsText(f)});
 function wipe(){if(confirm('Vuoi davvero cancellare tutti i dati di Spendly?')){state={transactions:[],budget:0};persist()}}

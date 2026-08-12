@@ -1,0 +1,10 @@
+Spendly V2
+
+Correzioni:
+- grafico aggiornato subito dopo aggiunta/eliminazione/importazione di movimenti;
+- confronto Entrate vs Spese negli ultimi 6 mesi;
+- date e mesi calcolati in ora locale, senza conversione UTC;
+- riepilogo statistiche mensili: entrate, spese, risparmio e tasso di risparmio;
+- categorie aggiornate automaticamente;
+- stessa chiave localStorage 'spendly_v1': i dati già presenti restano compatibili;
+- nuova cache service worker per forzare l'aggiornamento della PWA.
