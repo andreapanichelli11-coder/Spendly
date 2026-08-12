@@ -1,0 +1,5 @@
+Spendly V2.2
+- Modificata solo l'etichetta superiore del saldo.
+- Esempio nel mese corrente: "Saldo Agosto 2026".
+- "Entrate mese" e "Spese mese" restano invariate.
+- Mese e anno cambiano automaticamente con la data del dispositivo.

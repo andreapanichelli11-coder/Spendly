@@ -39,7 +39,7 @@ body{min-height:100vh}.app{max-width:720px;margin:auto;padding:calc(env(safe-are
 <div class="app">
 <section id="home" class="page active">
  <div class="top"><div><div class="eyebrow">Le mie finanze</div><h1>Spendly</h1></div><div class="avatar">€</div></div>
- <div class="hero"><div class="label">Saldo attuale</div><div id="balance" class="balance">€ 0,00</div><div class="monthrow"><div class="mini income"><span class="label">Entrate mese</span><b id="incomeMonth">€ 0,00</b></div><div class="mini expense"><span class="label">Spese mese</span><b id="expenseMonth">€ 0,00</b></div></div></div>
+ <div class="hero"><div class="label"><span id="balanceMonthLabel">Saldo</span></div><div id="balance" class="balance">€ 0,00</div><div class="monthrow"><div class="mini income"><span class="label">Entrate mese</span><b id="incomeMonth">€ 0,00</b></div><div class="mini expense"><span class="label">Spese mese</span><b id="expenseMonth">€ 0,00</b></div></div></div>
  <div class="quick"><button class="qbtn primary" onclick="openTx('expense')">− Aggiungi spesa</button><button class="qbtn secondary" onclick="openTx('income')">＋ Entrata</button></div>
  <div class="section"><div class="sectionhead"><h2>Budget mensile</h2><button class="smallbtn" onclick="openBudget()">Modifica</button></div><div class="budget"><div class="budgettop"><b id="budgetSpent">€ 0 spesi</b><span id="budgetTotal" class="muted">su € 0</span></div><div class="progress"><i id="budgetBar"></i></div><div id="budgetRemain" class="muted">Imposta un budget per iniziare</div></div></div>
  <div class="section"><div class="sectionhead"><h2>Dove spendi</h2><span class="muted">questo mese</span></div><div id="cats" class="catgrid"></div></div>
@@ -109,6 +109,11 @@ function showPage(id,btn){document.querySelectorAll('.page').forEach(p=>p.classL
 function txHTML(t,del=false){return `<div class="tx"><div class="txico">${icons[t.category]||'•'}</div><div class="txmain"><b>${escapeHtml(t.desc)}</b><span>${t.category} · ${new Date(t.date+'T12:00:00').toLocaleDateString('it-IT')}</span></div><div class="amount ${t.type==='income'?'plus':''}">${t.type==='income'?'+':'−'} ${money(t.amount)}</div>${del?`<button class="smallbtn danger" onclick="delTx(${t.id})">×</button>`:''}</div>`}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function render(){
+ const nowLabel=new Date().toLocaleDateString('it-IT',{month:'long',year:'numeric'});
+ const capLabel=nowLabel.charAt(0).toUpperCase()+nowLabel.slice(1);
+ const balanceMonthLabel=document.getElementById('balanceMonthLabel');
+ if(balanceMonthLabel) balanceMonthLabel.textContent='Saldo '+capLabel;
+ 
  const tx=state.transactions, cm=currentMonth(), mt=tx.filter(t=>monthKey(t.date)===cm);
  const income=mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0), expense=mt.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
  const balance=tx.reduce((s,t)=>s+(t.type==='income'?t.amount:-t.amount),0);
