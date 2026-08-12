@@ -1,0 +1,7 @@
+Spendly V2.3
+- La Home mostra in alto "Saldo <Mese> <Anno>", ad esempio "Saldo Agosto 2026".
+- "Entrate mese" e "Spese mese" restano invariati.
+- Il saldo resta mensile.
+- Service worker riscritto: le pagine HTML vengono richieste dalla rete senza usare la vecchia cache.
+- Le vecchie cache Spendly vengono eliminate all'attivazione della V2.3.
+- I dati dell'utente nel localStorage non vengono cancellati.
