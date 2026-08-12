@@ -1,0 +1,5 @@
+Spendly V2.1
+- Il saldo mostrato nella Home è ora mensile:
+  entrate del mese corrente - spese del mese corrente.
+- I movimenti dei mesi precedenti restano salvati e visibili nelle statistiche/storico.
+- Aggiornata la cache PWA per forzare il refresh su iPhone.
